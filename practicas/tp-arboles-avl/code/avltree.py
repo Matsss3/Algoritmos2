@@ -5,13 +5,13 @@ class AVLTree:
         self.root: AVLNode|None = None
 
 class AVLNode:
-    def __init__(self, key = None, value = None):
+    def __init__(self, key = -1, value = None):
         self.parent: AVLNode|None = None
         self.leftnode: AVLNode|None = None
         self.rightnode: AVLNode|None = None
         self.key = key
         self.value = value
-        self.bf: int|None = None
+        self.bf: int = 0
 
 def searchNode(N: AVLNode|None, e) -> AVLNode|None:
     if N == None:
@@ -24,64 +24,33 @@ def searchNode(N: AVLNode|None, e) -> AVLNode|None:
     else:
         return current
 
-def mayorIzq(N: AVLNode|None) -> AVLNode|None:
-    if N:
-        if N.rightnode:
-            return mayorIzq(N.rightnode)
-        return N
+def insertBT(B: AVLTree, e, k: int) -> int|None:
+    newNode = AVLNode(k, e)
 
-def menorDer(N: AVLNode|None) -> AVLNode|None:
-    if N:
-        if N.leftnode:
-            return menorDer(N.leftnode)
-        return N
+    if B.root == None:
+        B.root = newNode
+        return k
 
-def delete(A: AVLTree, e) -> int|None:
-    node = searchNode(A.root, e)
-    if node == None:
-        return None
-    replacement = mayorIzq(node.leftnode)
-    if replacement == None:
-        replacement = menorDer(node.rightnode)
-    if replacement and replacement.parent:
-        if replacement.leftnode:
-            replacement.parent.rightnode = replacement.leftnode
-            replacement.leftnode.parent = replacement.parent
-        elif replacement.rightnode:
-            replacement.parent.leftnode = replacement.rightnode
-            replacement.rightnode.parent = replacement.parent
-        else:
-            if replacement.parent.rightnode == replacement:
-                replacement.parent.rightnode = None
-            elif replacement.parent.leftnode == replacement:
-                replacement.parent.leftnode = None
-        replacement.parent = node.parent
-        replacement.leftnode = node.leftnode
-        replacement.rightnode = node.rightnode
-        if node == A.root:
-            A.root = replacement
-        else:
-            if node.parent:
-                if node.parent.rightnode == node:
-                    node.parent.rightnode = replacement
-                elif node.parent.leftnode == node:
-                    node.parent.leftnode = replacement
-        node.parent = None
-        node.rightnode = None
-        node.leftnode = None
-        return node.key
+    return _insertBT(B.root, newNode)
+
+def _insertBT(current: AVLNode, N: AVLNode) -> int|None:
+    if current.key is not None:
+        if current.key > N.key:
+            if current.leftnode:
+                return _insertBT(current.leftnode, N)
+            else:
+                current.leftnode = N
+                N.parent = current
+                return N.key
+        elif current.key < N.key:
+            if current.rightnode:
+                return _insertBT(current.rightnode, N)
+            else:
+                current.rightnode = N
+                N.parent = current
+                return N.key
     else:
-        if node == A.root:
-            A.root = None
-        else:
-            if node.parent:
-                if node.parent.rightnode == node:
-                    node.parent.rightnode = None
-                elif node.parent.leftnode == node:
-                    node.parent.leftnode = None
-            node.parent = None
-            return node.key
-    return None
+        return None
 
 def traverseInOrder(A: AVLTree) -> LinkedList:
     result = LinkedList()
@@ -91,7 +60,7 @@ def traverseInOrder(A: AVLTree) -> LinkedList:
 def _traverseInOrder(N: AVLNode|None, L: LinkedList):
     if N:
         _traverseInOrder(N.rightnode, L)
-        add(L, N.key)
+        add(L, N)
         _traverseInOrder(N.leftnode, L)
 
 def traverseInPostOrder(A: AVLTree) -> LinkedList:
@@ -101,7 +70,7 @@ def traverseInPostOrder(A: AVLTree) -> LinkedList:
 
 def _traverseInPostOrder(N: AVLNode|None, L: LinkedList):
     if N:
-        add(L, N.key)
+        add(L, N)
         _traverseInPostOrder(N.rightnode, L)
         _traverseInPostOrder(N.leftnode,L)
 
@@ -114,7 +83,7 @@ def _traverseInPreOrder(N: AVLNode|None, L: LinkedList):
     if N:
         _traverseInPreOrder(N.rightnode, L)
         _traverseInPreOrder(N.leftnode,L)
-        add(L, N.key)
+        add(L, N)
 
 # O(logn) porque siempre verifica el factor de balanceo para ir por una sola rama
 # del árbol en cada paso, efectivamente dividiendolo en 2 en cada paso (a menos
@@ -152,6 +121,7 @@ def rotateLeft(A: AVLTree, N: AVLNode|None) -> AVLNode|None:
 
     newRoot = N.rightnode
     subTree = newRoot.leftnode
+    parent = N.parent
 
     newRoot.leftnode = N
     N.rightnode = subTree
@@ -161,11 +131,16 @@ def rotateLeft(A: AVLTree, N: AVLNode|None) -> AVLNode|None:
     newRoot.parent = N.parent
     N.parent = newRoot
 
+    if parent:
+        if parent.leftnode == N:
+            parent.leftnode = newRoot
+        elif parent.rightnode == N:
+            parent.rightnode = newRoot
+    else:
+        A.root = newRoot
+
     N.bf = height(N.leftnode) - height(N.rightnode)
     newRoot.bf = height(newRoot.leftnode) - height(newRoot.rightnode)
-
-    if A.root == N:
-        A.root = newRoot
 
     return newRoot
 
@@ -175,6 +150,7 @@ def rotateRight(A: AVLTree, N: AVLNode|None) -> AVLNode|None:
 
     newRoot = N.leftnode
     subTree = newRoot.rightnode
+    parent = N.parent
 
     newRoot.rightnode = N
     N.leftnode = subTree
@@ -184,15 +160,69 @@ def rotateRight(A: AVLTree, N: AVLNode|None) -> AVLNode|None:
     newRoot.parent = N.parent
     N.parent = newRoot
 
+    if parent:
+        if parent.leftnode == N:
+            parent.leftnode = newRoot
+        elif parent.rightnode == N:
+            parent.rightnode = newRoot
+    else:
+        A.root = newRoot
+
     N.bf = height(N.leftnode) - height(N.rightnode)
     newRoot.bf = height(newRoot.leftnode) - height(newRoot.rightnode)
 
-    if A.root == N:
-        A.root = newRoot
-
     return newRoot
 
+# ========== EJERCICIO 2 ==========
+def calculateBalance(A: AVLTree) -> list[list]|None:
+    if A.root == None:
+        return None
+
+    result = []
+    nodeList = traverseInOrder(A)
+    current = nodeList.head
+    while current is not None:
+        result.append([current.value, current.value.bf])
+        current = current.nextNode
+    return result
+
 # ========== EJERCICIO 3 ==========
+def rebalance(A: AVLTree, N: AVLNode|None) -> AVLNode|None:
+    if N == None:
+        return None
+
+    N.leftnode = rebalance(A, N.leftnode)
+    N.rightnode = rebalance(A, N.rightnode)
+    N.bf = height(N.leftnode) - height(N.rightnode)
+
+    leftNode_bf = N.leftnode.bf if N.leftnode else 0
+    rightNode_bf = N.rightnode.bf if N.rightnode else 0
+
+    # LL
+    if N.bf > 1 and leftNode_bf >= 0:
+        return rotateRight(A, N)
+    #RR
+    elif N.bf < -1 and rightNode_bf <= 0:
+        return rotateLeft(A, N)
+    #LR
+    elif N.bf > 1 and leftNode_bf < 0:
+        rotateLeft(A, N.leftnode)
+        return rotateRight(A, N)
+    #RL
+    elif N.bf < -1 and rightNode_bf > 0:
+        rotateRight(A, N.rightnode)
+        return rotateLeft(A, N)
+
+    return N
+
+def reBalance(A: AVLTree) -> AVLTree|None:
+    if A.root == None:
+        return None
+
+    A.root = rebalance(A, A.root)
+    return A
+
+# ========== EJERCICIO 4 ==========
 def insert(A: AVLTree, e, k: int) -> AVLNode:
     newNode = AVLNode(k, e)
 
@@ -204,7 +234,7 @@ def insert(A: AVLTree, e, k: int) -> AVLNode:
     return newNode
 
 def _insert(A: AVLTree, current: AVLNode, N: AVLNode) -> AVLNode|None:
-    if current.key:
+    if current.key is not None:
         if current.key > N.key:
             if current.leftnode:
                 current.leftnode = _insert(A, current.leftnode, N)
@@ -221,8 +251,8 @@ def _insert(A: AVLTree, current: AVLNode, N: AVLNode) -> AVLNode|None:
             return current
 
         current.bf = height(current.leftnode) - height(current.rightnode)
-        leftNode_bf = current.leftnode.bf if current.leftnode and current.leftnode.bf else 0
-        rightNode_bf = current.rightnode.bf if current.rightnode and current.rightnode.bf else 0
+        leftNode_bf = current.leftnode.bf if current.leftnode else 0
+        rightNode_bf = current.rightnode.bf if current.rightnode else 0
         # LL
         if current.bf > 1 and leftNode_bf >= 0:
             rotation = rotateRight(A, current)
@@ -233,12 +263,12 @@ def _insert(A: AVLTree, current: AVLNode, N: AVLNode) -> AVLNode|None:
             current = rotation if rotation else current
         #LR
         elif current.bf > 1 and leftNode_bf < 0:
-            current.leftnode = rotateLeft(A, current.leftnode)
+            rotateLeft(A, current.leftnode)
             rotation = rotateRight(A, current)
             current = rotation if rotation else current
         #RL
         elif current.bf < -1 and rightNode_bf > 0:
-            current.rightnode = rotateRight(A, current.rightnode)
+            rotateRight(A, current.rightnode)
             rotation = rotateLeft(A, current)
             current = rotation if rotation else current
 
@@ -246,6 +276,101 @@ def _insert(A: AVLTree, current: AVLNode, N: AVLNode) -> AVLNode|None:
     else:
         return None
 
+# ========== EJERCICIO 5 ==========
+def mayorIzq(N: AVLNode|None) -> AVLNode|None:
+    if N:
+        if N.rightnode:
+            return mayorIzq(N.rightnode)
+        return N
+
+def menorDer(N: AVLNode|None) -> AVLNode|None:
+    if N:
+        if N.leftnode:
+            return menorDer(N.leftnode)
+        return N
+
+def delete(A: AVLTree, k: int) -> int|None:
+    if A.root == None:
+        return None
+
+    A.root = _delete(A, A.root, k)
+    return k
+
+def _delete(A: AVLTree, N: AVLNode|None, k: int) -> AVLNode|None:
+    if N == None:
+        return None
+
+    if k < N.key:
+        N.leftnode = _delete(A, N.leftnode, k)
+    elif k > N.key:
+        N.rightnode = _delete(A, N.rightnode, k)
+    else:
+        replacement = mayorIzq(N.leftnode)
+        if replacement == None:
+            replacement = menorDer(N.rightnode)
+        if replacement and replacement.parent:
+            if replacement.leftnode:
+                replacement.parent.rightnode = replacement.leftnode
+                replacement.leftnode.parent = replacement.parent
+            elif replacement.rightnode:
+                replacement.parent.leftnode = replacement.rightnode
+                replacement.rightnode.parent = replacement.parent
+            else:
+                if replacement.parent.rightnode == replacement:
+                    replacement.parent.rightnode = None
+                elif replacement.parent.leftnode == replacement:
+                    replacement.parent.leftnode = None
+            replacement.parent = N.parent
+            replacement.leftnode = N.leftnode
+            replacement.rightnode = N.rightnode
+            if N == A.root:
+                A.root = replacement
+            else:
+                if N.parent:
+                    if N.parent.rightnode == N:
+                        N.parent.rightnode = replacement
+                    elif N.parent.leftnode == N:
+                        N.parent.leftnode = replacement
+            N.parent = None
+            N.rightnode = None
+            N.leftnode = None
+            return replacement
+        else:
+            if N == A.root:
+                A.root = None
+            else:
+                if N.parent:
+                    if N.parent.rightnode == N:
+                        N.parent.rightnode = None
+                    elif N.parent.leftnode == N:
+                        N.parent.leftnode = None
+                N.parent = None
+                return replacement
+
+    N.bf = height(N.leftnode) - height(N.rightnode)
+    leftNode_bf = N.leftnode.bf if N.leftnode else 0
+    rightNode_bf = N.rightnode.bf if N.rightnode else 0
+
+    # LL
+    if N.bf > 1 and leftNode_bf >= 0:
+        rotation = rotateRight(A, N)
+        N = rotation if rotation else N
+    #RR
+    elif N.bf < -1 and rightNode_bf <= 0:
+        rotation = rotateLeft(A, N)
+        N = rotation if rotation else N
+    #LR
+    elif N.bf > 1 and leftNode_bf < 0:
+        rotateLeft(A, N.leftnode)
+        rotation = rotateRight(A, N)
+        N = rotation if rotation else N
+    #RL
+    elif N.bf < -1 and rightNode_bf > 0:
+        rotateRight(A, N.rightnode)
+        rotation = rotateLeft(A, N)
+        N = rotation if rotation else N
+
+    return N
 
 
 
@@ -254,14 +379,42 @@ def generate_test_tree():
     keys = [
         6, 18, 31, 43, 56, 68, 81, 93,
         25, 50, 75,
-        2, 9, 15, 21, 33, 40, 59, 65, 79, 90, 97,
+        # 2, 9, 15, 21, 33, 40, 59, 65, 79, 90, 97,
         12, 37, 62, 87
     ]
     for key in keys:
         insert(tree, str(key), key)
+        # insertBT(tree, str(key), key)
     return tree
 
-test_tree = generate_test_tree()
-print_avl(test_tree.root)
+if __name__ == '__main__':
+    test_tree = generate_test_tree()
+    print_avl(test_tree.root)
 
-traverseInOrder(test_tree).print_list()
+    traverseInOrder(test_tree).print_list()
+    balanceList = calculateBalance(test_tree)
+    if balanceList:
+        print([(i[0].key, i[1]) for i in balanceList])
+
+    print(delete(test_tree, 18))
+    print(delete(test_tree, 6))
+    print_avl(test_tree.root)
+
+    # test_tree2 = generate_test_tree()
+    # print_avl(test_tree2.root)
+    # balanceList = []
+    # nodeList = traverseInOrder(test_tree2)
+    # current = nodeList.head
+    # while current is not None:
+    #     current.value.bf = height(current.value.leftnode) - height(current.value.rightnode)
+    #     balanceList.append((current.value.key, current.value.bf))
+    #     current = current.nextNode
+    # print(balanceList)
+    # # Hicieron falta dos pasadas, el arbol estaba muy desbalanceado
+    # reBalance(test_tree2)
+    # reBalance(test_tree2)
+    #
+    # print_avl(test_tree2.root)
+    # finalBalance = calculateBalance(test_tree2)
+    # if finalBalance:
+    #     print([(i[0].key, i[1]) for i in finalBalance])

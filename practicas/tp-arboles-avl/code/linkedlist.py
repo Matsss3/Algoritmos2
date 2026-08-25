@@ -5,7 +5,7 @@ class LinkedList:
     def print_list(self):
         current = self.head
         while current is not None:
-            print(current.value, end=" -> ")
+            print(current.value.value, end=" -> ")
             current = current.nextNode
         print("None")
 
