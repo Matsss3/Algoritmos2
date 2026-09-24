@@ -42,6 +42,9 @@ class TrieNode:
 
 # Ejercicio 1
 def insert(T: Trie, element: str) -> None:
+    if element == "":
+        return
+
     if T.root is None:
         T.root = TrieNode(None)
         word_node = build_word(element)
@@ -50,21 +53,21 @@ def insert(T: Trie, element: str) -> None:
             lk.add(T.root.children, word_node)
         return
 
-    counter = 0
+    word = element
     current = T.root
     cl = current.children.head
 
     while cl is not None:
-        if cl.value.key == element[counter]:
-            if counter == len(element) - 1:
+        if word == "" or cl.value.key == word[0]:
+            word = word[1:]
+            if word == "":
                 cl.value.isEndOfWord = True
                 return
 
-            counter += 1
             current = cl.value
 
             if cl.value.children.head is None:
-                word_node = build_word(element[counter:])
+                word_node = build_word(word)
                 if word_node:
                     word_node.parent = current
                     lk.add(current.children, word_node)
@@ -74,7 +77,7 @@ def insert(T: Trie, element: str) -> None:
             continue
         cl = cl.nextNode
 
-    word_node = build_word(element[counter:])
+    word_node = build_word(word)
     if word_node:
         word_node.parent = current
         lk.add(current.children, word_node)
@@ -94,6 +97,78 @@ def build_word(word: str) -> TrieNode|None:
 
     return first
 
+def search(T: Trie, element: str) -> bool:
+    if T.root is None or T.root.children.head is None:
+        if element == "":
+            return True
+        else:
+            return False
+
+    word = element
+    cl = T.root.children.head
+
+    while cl is not None:
+        if word == "" or cl.value.key == word[0]:
+            word = word[1:]
+            if word == "":
+                if cl.value.isEndOfWord:
+                    return True
+                else:
+                    return False
+            cl = cl.value.children.head
+            continue
+        cl = cl.nextNode
+
+    return False
+
+# Ejercicio 3
+def delete(T: Trie, element: str) -> bool:
+    if T.root is None or T.root.children.head is None:
+        if element == "":
+            return True
+        else:
+            return False
+
+    if element == "":
+        return False
+
+    word = element
+    current = T.root
+    cl = current.children.head
+
+    while cl is not None:
+        if word == "" or cl.value.key == word[0]:
+            current = cl.value
+            word = word[1:]
+            if word == "":
+                if current.isEndOfWord:
+                    break
+                else:
+                    return False
+            cl = cl.value.children.head
+            continue
+        cl = cl.nextNode
+
+    if word != "":
+        return False
+
+    if current:
+        if current.children.head is None:
+            node = None
+            while (current.parent is not None and 
+                   (lk.length(current.children) == 1
+                    or lk.length(current.children) == 0)):
+                node = current
+                current = current.parent
+                if current.isEndOfWord:
+                    break
+            lk.delete(current.children, node)
+        else:
+            current.isEndOfWord = False
+
+        return True
+    else:
+        return False
 
 
 # ========== TESTING ==========
@@ -107,7 +182,7 @@ TEST_CASES = {
     "empty":          [],
     "single_word":    ["cat"],
     "shared_prefix":  ["car", "cart", "care", "cat"],
-    "prefix_is_word": ["a", "an", "and", "ant"],
+    "prefix_is_word": ["an", "and", "ant", "a"],
     "disjoint":       ["dog", "zebra", "apple"],
     "mixed":          ["tea", "ten", "to", "inn", "in", "i"],
 }
@@ -117,3 +192,14 @@ if __name__ == "__main__":
         print(f"\n{name}: {words}")
         t = build_trie(words) if words else Trie()
         t.print_trie()
+
+    t = build_trie(TEST_CASES["shared_prefix"])
+    print(search(t, "cart"))
+    print(search(t, "car"))
+    print(search(t, "cares"))
+
+    t.print_trie()
+
+    delete(t, "care")
+    print()
+    t.print_trie()
