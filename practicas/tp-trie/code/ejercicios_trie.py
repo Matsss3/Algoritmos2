@@ -80,11 +80,20 @@ def _matching_tries(node1: TrieNode|None, node2: TrieNode|None) -> bool:
     return True
 
 # Ejercicio 6
-def inverted_trie(T: Trie) -> bool:
+def inverted_trie(T: Trie, element: str) -> bool:
+    if element == "":
+        return True
+
+    if T.root is None or T.root.children.head is None:
+        return False
+    
+    inverted = element[::-1]
+
+    if search(T, element) and search(T, inverted):
+        return True
+
     return False
         
-        
-
 # ========== TESTING ==========
 def build_trie(words):
     trie = Trie()
@@ -95,8 +104,8 @@ def build_trie(words):
 TEST_CASES = {
     "empty":          [],
     "single_word":    ["cat"],
-    "shared_prefix":  ["car", "cart", "care", "cat"],
-    "shared_prefix2":  ["care", "car", "cat", "cart"],
+    "shared_prefix":  ["car", "rac", "cart", "care", "cat"],
+    "shared_prefix2":  ["care", "car", "cat", "cart", "rac"],
     "prefix_is_word": ["an", "and", "ant", "a"],
     "disjoint":       ["dog", "zebra", "apple"],
     "mixed":          ["tea", "ten", "to", "inn", "in", "i"],
@@ -120,12 +129,16 @@ if __name__ == "__main__":
     t3 = build_trie(TEST_CASES["prefixes"])
     t4 = build_trie(TEST_CASES["shared_prefix2"])
 
-    t2.print_trie()
-    t4.print_trie()
+    # t2.print_trie()
+    # t4.print_trie()
+    #
+    # print(matching_tries(t, t3))
+    # print(matching_tries(t2, t4))
+    #
+    # print()
+    # t.print_trie()
+    # print(trie_prefix(t, "trans", 9))
 
-    print(matching_tries(t, t3))
-    print(matching_tries(t2, t4))
-
-    print()
-    t.print_trie()
-    print(trie_prefix(t, "trans", 9))
+    # print()
+    # print(inverted_trie(t2, "car"))
+    # print(inverted_trie(t, "transport"))

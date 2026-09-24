@@ -170,6 +170,39 @@ def delete(T: Trie, element: str) -> bool:
     else:
         return False
 
+# Ejercicio 7
+def autoCompletar(T: Trie, cadena: str) -> str:
+    if T.root is None or T.root.children.head is None:
+        return ""
+
+    result = ""
+
+    pref = cadena
+    current = T.root
+    node = current.children.head
+
+    while node is not None and pref != "":
+        if node.value.key == pref[0]:
+            pref = pref[1:]
+            current = node.value
+            node = node.value.children.head
+            continue
+        node = node.nextNode
+
+    if pref != "":
+        return ""
+
+    while current is not None:
+        result += current.key
+        if current.children.head is None:
+            break
+        if current.children.head.nextNode is not None:
+            break
+        if current.isEndOfWord:
+            break
+        current = current.children.head.value
+
+    return result[1:]
 
 # ========== TESTING ==========
 def build_trie(words):
@@ -185,6 +218,18 @@ TEST_CASES = {
     "prefix_is_word": ["an", "and", "ant", "a"],
     "disjoint":       ["dog", "zebra", "apple"],
     "mixed":          ["tea", "ten", "to", "inn", "in", "i"],
+    "prefixes":       [
+                        "trans",
+                        "transfer",
+                        "transformation",
+                        "transport",
+                        "transportation",
+                        "transparent",
+                        "transformer",
+                        "transferring",
+                        "transnational",
+                        "transparency",
+                      ]
 }
 
 if __name__ == "__main__":
@@ -203,3 +248,7 @@ if __name__ == "__main__":
     delete(t, "care")
     print()
     t.print_trie()
+
+    t = build_trie(TEST_CASES["prefixes"])
+    print()
+    print(autoCompletar(t, "transpa"))
