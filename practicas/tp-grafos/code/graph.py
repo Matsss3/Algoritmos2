@@ -102,25 +102,6 @@ def isComplete(G: Graph) -> bool:
         return False
 
 # Ejercicio 6
-def BFS(G: Graph, s) -> list[tuple[Any, Any]]:
-    visited = [s]
-    result = []
-
-    Q = lk.LinkedList()
-    enqueue(Q, s)
-    while Q.head is not None:
-        u = dequeue(Q)
-        curr_e = G.graph.dictionary[G.graph.hash_func(u)].head
-        while curr_e is not None:
-            v = curr_e.value[1]
-            if v not in visited:
-                visited.append(v)
-                enqueue(Q, v)
-                result.append((u, v))
-            curr_e = curr_e.nextNode
-
-    return result
-
 def convertTree(G: Graph) -> lk.LinkedList:
     result = lk.LinkedList()
     e = G.e
@@ -136,6 +117,110 @@ def convertTree(G: Graph) -> lk.LinkedList:
 
         curr_e = curr_e.nextNode
     return result
+
+# Ejercicio 7
+def countConnections(G: Graph) -> int:
+    v = G.v.head
+    visited = []
+    result = 0
+
+    def dfs_visit(G: Graph, u):
+        visited.append(u)
+        adj_u = G.graph.dictionary[G.graph.hash_func(u)].head
+        while adj_u is not None:
+            v = adj_u.value[1]
+            if v not in visited:
+                dfs_visit(G, v)
+            adj_u = adj_u.nextNode
+
+    while v is not None:
+        if v.value not in visited:
+            dfs_visit(G, v.value)
+            result += 1
+        v = v.nextNode
+
+    return result
+
+# Ejercicio 8
+def BFS(G: Graph, s) -> Graph:
+    if not isConnected(G):
+        return G
+
+    visited = [s]
+    new_e = lk.LinkedList()
+
+    Q = lk.LinkedList()
+    enqueue(Q, s)
+    while Q.head is not None:
+        u = dequeue(Q)
+        curr_e = G.graph.dictionary[G.graph.hash_func(u)].head
+        while curr_e is not None:
+            v = curr_e.value[1]
+            if v not in visited:
+                visited.append(v)
+                enqueue(Q, v)
+                lk.add(new_e, (u, v))
+            curr_e = curr_e.nextNode
+
+    return Graph(G.v, new_e)
+
+# Ejercicio 9
+def DFS(G: Graph, s) -> Graph:
+    v = G.v.head
+    visited = []
+    new_e = lk.LinkedList()
+
+    def dfs_visit(G: Graph, u):
+        visited.append(u)
+        adj_u = G.graph.dictionary[G.graph.hash_func(u)].head
+        while adj_u is not None:
+            v = adj_u.value[1]
+            if v not in visited:
+                dfs_visit(G, v)
+                lk.add(new_e, (u, v))
+            adj_u = adj_u.nextNode
+
+    while v is not None:
+        if v.value not in visited:
+            dfs_visit(G, v.value)
+        v = v.nextNode
+
+    return Graph(G.v, new_e)
+
+# Ejercicio 10
+# (Sólo cuando los vértices son numéricos)
+def bestRoad(G: Graph, v1, v2) -> lk.LinkedList()|None:
+    road = []
+
+    if search(G.graph, v1) is None or search(G.graph, v2) is None:
+        return road
+
+    visited = [v1]
+    len_v = lk.length(G.v)
+    parent = [None] * len_v
+
+    Q = lk.LinkedList()
+    enqueue(Q, v1)
+    while Q.head is not None:
+        u = dequeue(Q)
+        curr_e = G.graph.dictionary[G.graph.hash_func(u)].head
+        while curr_e is not None:
+            v = curr_e.value[1]
+            if v not in visited:
+                visited.append(v)
+                enqueue(Q, v)
+                parent[v - 1] = u
+            curr_e = curr_e.nextNode
+
+    index = v2 - 1
+    while index != v1 - 1:
+        road.append(parent[index])
+        index = parent[index] - 1
+    road.insert(0, v2)
+
+    return build_list(road[::-1])
+
+
 
 
 # ========== TESTING ==========
@@ -174,5 +259,22 @@ if __name__ == "__main__":
     # print()
 
     # print(isTree(graph1))
+    # print()
 
     # convertTree(graph1).print_list()
+    # print()
+
+    # print(countConnections(graph1))
+    # print(countConnections(graph2))
+    # print()
+
+    # BFS(graph1, 3).printGraph()
+    # print()
+
+    # DFS(graph1, 1).printGraph()
+    # print()
+    # DFS(graph2, "A").printGraph()
+    # print()
+
+    # bestRoad(graph1, 1, 5).print_list()
+    # print()
