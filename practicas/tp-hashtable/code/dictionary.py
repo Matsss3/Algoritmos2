@@ -15,7 +15,7 @@ def insert(D: Dictionary, key: int, value) -> Dictionary:
         return D
     
     hashed_key = D.hash_func(key)
-    lk.add(D.dictionary[hashed_key], (key, value))
+    lk.add(D.dictionary[hashed_key], [key, value])
     return D
 
 def search(D: Dictionary, key: int):
@@ -27,6 +27,7 @@ def search(D: Dictionary, key: int):
     while current is not None:
         if current.value[0] == key:
             return current.value[1]
+        print(current.value[0])
         current = current.nextNode
 
     return None
