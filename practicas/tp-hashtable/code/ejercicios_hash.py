@@ -1,4 +1,5 @@
 from dictionary import *
+import linkedlist as lk
 import random
 
 # Ejercicio 4
@@ -20,9 +21,9 @@ def is_perm(s: str, p: str) -> bool:
 
     return True
 
-# print(is_perm("hola", "aloh"))
-# print(is_perm("hola", "chau"))
-# print()
+print(is_perm("hola", "aloh"))
+print(is_perm("hola", "chau"))
+print()
 
 # Ejercicio 5
 def contains_repeated(L: list[int]) -> bool:
@@ -42,9 +43,9 @@ def contains_repeated(L: list[int]) -> bool:
 
     return False
     
-# print(contains_repeated([1,2,3,4,5]))
-# print(contains_repeated([1,2,3,4,1]))
-# print()
+print(contains_repeated([1,2,3,4,5]))
+print(contains_repeated([1,2,3,4,1]))
+print()
 
 # Ejercicio 6
 def postal_hash(postal_code: str) -> tuple[tuple[int, int], int]:
@@ -68,9 +69,9 @@ def postal_hash(postal_code: str) -> tuple[tuple[int, int], int]:
 
     return ((a, b), key)
 
-# print(postal_hash("C1024CWN"))
-# print(postal_hash("A6927VOW"))
-# print()
+print(postal_hash("C1024CWN"))
+print(postal_hash("A6927VOW"))
+print()
 
 # Ejercicio 7
 def hash_compression(s: str) -> str:
@@ -107,9 +108,9 @@ def normal_compression(s: str) -> str:
 
     return result if len(result) < len(s) else s
 
-# print(hash_compression("aabcccccaaa"))
-# print(normal_compression("aabcccccaaa"))
-# print()
+print(hash_compression("aabcccccaaa"))
+print(normal_compression("aabcccccaaa"))
+print()
 
 # Ejercicio 8
 def find_substr(s: str, substr: str) -> None|int:
@@ -132,6 +133,71 @@ def find_substr(s: str, substr: str) -> None|int:
 
     return None
 
-# print(find_substr("abracadabra", "cada"))
-# print(find_substr("holamundo", "undo"))
-# print()
+print(find_substr("abracadabra", "cada"))
+print(find_substr("holamundo", "undo"))
+print()
+
+# Ejercicio 9
+def hash_subset(S: list[int], T: list[int]) -> bool:
+    if len(S) > len(T):
+        return False
+
+    hash_table = Dictionary(len(T))
+
+    for integer in T:
+        insert(hash_table, integer, integer)
+
+    for integer in S:
+        if search(hash_table, integer) is None:
+            return False
+
+    return True
+
+print(hash_subset([1, 5, 2], [2, 3, 4, 5, 1]))
+print(hash_subset([1, 6, 2], [2, 3, 4, 52, 1]))
+print()
+
+# Ejercico 10
+test_list = [10, 22, 31, 4, 15, 28, 17, 88, 59]
+
+def linear_insert(D: Dictionary, k: int) -> int|None:
+    i = 0
+    while i < D.m:
+        j = (k + i) % D.m
+        if D.dictionary[j].head is None:
+            lk.add(D.dictionary[j], k)
+            return j
+        else:
+            i += 1
+
+linear_probe = Dictionary(11)
+for i in test_list:
+    print(f"{i}: slot {linear_insert(linear_probe, i) + 1}")
+
+def quadratic_insert(D: Dictionary, k: int) -> int|None:
+    i = 0
+    while i < D.m:
+        j = (k + i + 3 * i ** 2) % D.m
+        if D.dictionary[j].head is None:
+            lk.add(D.dictionary[j], k)
+            return j
+        else:
+            i += 1
+
+quadratic_probe = Dictionary(11)
+for i in test_list:
+    print(f"{i}: slot {quadratic_insert(quadratic_probe, i) + 1}")
+
+def dh_insert(D: Dictionary, k: int) -> int|None:
+    i = 0
+    while i < D.m:
+        j = (k + i * (1 + k % (D.m - 1))) % D.m
+        if D.dictionary[j].head is None:
+            lk.add(D.dictionary[j], k)
+            return j
+        else:
+            i += 1
+
+double_hashing = Dictionary(11)
+for i in test_list:
+    print(f"{i}: slot {dh_insert(double_hashing, i) + 1}")

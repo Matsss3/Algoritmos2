@@ -27,7 +27,6 @@ def search(D: Dictionary, key: int):
     while current is not None:
         if current.value[0] == key:
             return current.value[1]
-        print(current.value[0])
         current = current.nextNode
 
     return None
