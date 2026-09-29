@@ -44,7 +44,7 @@ def isConnected(G: Graph) -> bool:
 
     if v.head is not None:
         dfs_visit(G, v.head.value)
-        if len(visited) == lk.length(v):
+        if len(visited) == G.graph.m:
             return True
         else:
             return False
@@ -53,13 +53,13 @@ def isConnected(G: Graph) -> bool:
 # Ejercicio 4
 def isTree(G: Graph) -> bool:
     is_conn = isConnected(G)
-    if is_conn and lk.length(G.e) == (lk.length(G.v) - 1):
+    if is_conn and lk.length(G.e) == (G.graph.m - 1):
         return True
     return False
 
 # Ejercicio 5
 def isComplete(G: Graph) -> bool:
-    v = lk.length(G.v)
+    v = G.graph.m
     if lk.length(G.e) == (v * (v-1)) // 2:
         return True
     else:
@@ -163,7 +163,7 @@ def bestRoad(G: Graph, v1, v2) -> lk.LinkedList|None:
         return build_list(road)
 
     visited = [v1]
-    len_v = lk.length(G.v)
+    len_v = G.graph.m
     parent = [None] * len_v
 
     Q = lk.LinkedList()
@@ -195,7 +195,7 @@ def PRIM(G: WeightedGraph) -> WeightedGraph:
 
     T_e = []
     U = [G.v.head.value]
-    len_v = lk.length(G.v)
+    len_v = G.graph.m
 
     while len(U) != len_v:
         min_weight = inf
@@ -242,6 +242,98 @@ def KRUSKAL(G: WeightedGraph) -> WeightedGraph:
     return WeightedGraph(G.v, build_list(T_e))
 
 
+# Ejercicio 21
+def initRelax(G: WeightedDirectedGraph, s, Q: list[tuple], distance: Dictionary, parent: Dictionary) -> None:
+    curr_v = G.v.head
+    while curr_v is not None:
+        insert(distance, (curr_v.value, inf), key = curr_v.value)
+        Q.insert(G.graph.hash_func(curr_v.value), (curr_v.value, inf))
+        insert(parent, (curr_v.value, None), key = curr_v.value)
+        curr_v = curr_v.nextNode
+    delete(distance, s)
+    insert(distance, (s, 0), key = s)
+    Q[G.graph.hash_func(s)] = (s, 0)
+
+def relax(G: WeightedDirectedGraph, Q: list[tuple], distance: Dictionary, parent: Dictionary, u, v) -> None:
+    v_d = search(distance, v)
+    u_d = search(distance, u)
+    try:
+        v_d = [node for node in Q if node[0] == v][0]
+        u_d = [node for node in Q if node[0] == u][0]
+    except IndexError:
+        pass
+
+    if v_d and u_d:
+        v_d = v_d[1]
+        u_d = u_d[1]
+        w = None
+        curr_e = G.graph.dictionary[G.graph.hash_func(u)].head
+        if curr_e:
+            curr_e = curr_e.nextNode
+        while curr_e is not None:
+            if isinstance(curr_e.value, tuple):
+                v_j, weight = curr_e.value[1]
+                if v_j == v:
+                    w = weight
+            curr_e = curr_e.nextNode
+
+        if w is None:
+            return
+
+        if v_d > (u_d + w):
+            delete(distance, v)
+            delete(parent, v)
+            insert(distance, (v, u_d + w), v)
+            insert(parent, (v, u), v)
+            for i, node in enumerate(Q):
+                if node[0] == v:
+                    Q[i] = (v, u_d + w)
+
+def shortestPath(G: WeightedDirectedGraph, s, x) -> lk.LinkedList|None:
+    if G.v.head is None:
+        return None
+
+    road = []
+
+    distance = Dictionary(G.graph.m)
+    Q = []
+    parent = Dictionary(G.graph.m)
+
+    initRelax(G, s, Q, distance, parent)
+
+    S = []
+
+    Q.sort(key = lambda x: x[1])
+
+    while len(Q) > 0:
+        u = Q[0][0]
+        Q.pop(0)
+        S.append(u)
+
+        adj_u = G.graph.dictionary[G.graph.hash_func(u)].head
+        if adj_u:
+            adj_u = adj_u.nextNode
+        while adj_u is not None:
+            if not isinstance(adj_u.value, tuple):
+                continue
+            v = adj_u.value[1][0]
+            if v not in S:
+                relax(G, Q, distance, parent, u, v)
+                Q.sort(key = lambda x: x[1])
+            adj_u = adj_u.nextNode
+    
+    curr_parent = search(parent, x)
+    while curr_parent is not None:
+        road.append(curr_parent[1])
+        curr_parent = search(parent, curr_parent[1])
+    road.insert(0, x)
+    road.pop()
+
+    if len(road) == 1 and road[0] == x:
+        return None
+
+    return build_list(road[::-1])
+
 # ========== TESTING ==========
 def build_list(values) -> lk.LinkedList:
     lst = lk.LinkedList()
@@ -279,11 +371,45 @@ def test_weighted_graph() -> WeightedGraph:
     graph = WeightedGraph(v, e)
     graph.printGraph()
     return graph
+
+def test_weighted_directed_graph() -> WeightedDirectedGraph:
+    print("--- weighted, directed ---")
+    v = build_list([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    e = build_list([
+        (1, 2, 4),
+        (1, 3, 2),
+        (1, 4, 7),
+        (2, 3, 1),
+        (2, 5, 5),
+        (2, 6, 8),
+        (3, 2, 3),
+        (3, 4, 3),
+        (3, 5, 6),
+        (4, 5, 2),
+        (4, 7, 6),
+        (5, 6, 1),
+        (5, 7, 4),
+        (5, 8, 7),
+        (6, 3, 4),
+        (6, 8, 3),
+        (6, 9, 6),
+        (7, 8, 2),
+        (7, 10, 5),
+        (8, 9, 1),
+        (8, 10, 4),
+        (9, 6, 2),
+        (9, 10, 2),
+        (10, 7, 3),
+    ])
+    graph = WeightedDirectedGraph(v, e)
+    graph.printGraph()
+    return graph
  
 if __name__ == "__main__":
-    # graph1 = test_int_graph()
-    # graph2 = test_str_graph()
+    graph1 = test_int_graph()
+    graph2 = test_str_graph()
     graph3 = test_weighted_graph()
+    graph4 = test_weighted_directed_graph()
     print()
 
     # print(existPath(graph1, 1, 4))
@@ -319,3 +445,5 @@ if __name__ == "__main__":
 
     # KRUSKAL(graph3).printGraph()
     # print()
+
+    # shortestPath(graph4, 5, 4).print_list()
